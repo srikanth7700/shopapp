@@ -17,9 +17,10 @@ import java.time.Instant;
 @Table(name = "payments")
 public class Payment {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long  id;
 
     /** UNIQUE: an order can be charged at most once, even if the event is delivered twice. */
     @Column(name = "order_id", nullable = false, unique = true)
@@ -41,6 +42,9 @@ public class Payment {
     @Column(name = "failure_reason", length = 500)
     private String failureReason;
 
+
+
+    //djjdjfh
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
