@@ -1,0 +1,31 @@
+# Creates the six service databases on the managed PostgreSQL server
+# (RDS / Azure Database for PostgreSQL). Safe to run more than once.
+# Same SQL as infra/postgres/init-databases.sql, which Docker Compose uses.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-init
+spec:
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: psql
+          image: postgres:16-alpine
+          envFrom:
+            - configMapRef:
+                name: shopstream-config
+            - secretRef:
+                name: shopstream-secrets
+          command:
+            - sh
+            - -c
+            - |
+              export PGPASSWORD="$DB_PASSWORD"
+              for db in users_db products_db inventory_db orders_db payments_db notifications_db; do
+                psql "host=$DB_HOST port=$DB_PORT user=$DB_USERNAME dbname=postgres sslmode=prefer" -tc \
+                  "SELECT 1 FROM pg_database WHERE datname = '$db'" | grep -q 1 \
+                  || psql "host=$DB_HOST port=$DB_PORT user=$DB_USERNAME dbname=postgres sslmode=prefer" -c "CREATE DATABASE $db"
+              done

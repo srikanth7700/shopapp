@@ -1,0 +1,21 @@
+# Non-secret settings shared by every service. They become environment
+# variables (envFrom) and override the defaults in each application.yml.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shopstream-config
+data:
+  DB_HOST: "postgres.example.internal"      # replaced by each overlay
+  DB_PORT: "5432"
+  DB_PARAMS: ""
+  KAFKA_BOOTSTRAP_SERVERS: "kafka.example.internal:9092"   # replaced by each overlay
+  APP_KAFKA_REPLICATIONFACTOR: "1"          # binds to app.kafka.replication-factor
+  JAVA_OPTS: "-XX:MaxRAMPercentage=75"
+  USER_SERVICE_URL: "http://user-service:8081"
+  PRODUCT_SERVICE_URL: "http://product-service:8082"
+  INVENTORY_SERVICE_URL: "http://inventory-service:8083"
+  ORDER_SERVICE_URL: "http://order-service:8084"
+  PAYMENT_SERVICE_URL: "http://payment-service:8085"
+  NOTIFICATION_SERVICE_URL: "http://notification-service:8086"
+  PAYMENT_MAX_AMOUNT: "5000"
+  PAYMENT_DELAY_MS: "1500"

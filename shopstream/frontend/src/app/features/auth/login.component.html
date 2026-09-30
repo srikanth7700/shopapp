@@ -1,0 +1,31 @@
+<div class="auth card">
+  <h1>Log in</h1>
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <label class="field">
+      <span>Email</span>
+      <input class="input" type="email" formControlName="email" autocomplete="email" />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <small class="field__error">Enter a valid email.</small>
+      }
+    </label>
+    <label class="field">
+      <span>Password</span>
+      <input class="input" type="password" formControlName="password" autocomplete="current-password" />
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <small class="field__error">Password is required.</small>
+      }
+    </label>
+
+    @if (error()) {
+      <div class="alert alert--error">{{ error() }}</div>
+    }
+
+    <button type="submit" class="btn btn--primary btn--block" [disabled]="submitting()">
+      {{ submitting() ? 'Logging in...' : 'Log in' }}
+    </button>
+  </form>
+  <p class="muted small">
+    No account? <a routerLink="/register">Sign up</a>.
+    Want to try the admin page? <button type="button" class="btn btn--link" (click)="fillDemoAdmin()">Use the demo admin</button>
+  </p>
+</div>

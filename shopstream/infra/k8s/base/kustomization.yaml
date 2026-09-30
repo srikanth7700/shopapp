@@ -1,0 +1,22 @@
+# Kustomize "base": the manifests shared by every environment.
+# Overlays (overlays/aws, overlays/azure) patch only what differs.
+#   kubectl kustomize infra/k8s/overlays/aws    # preview the final YAML
+#   kubectl apply -k infra/k8s/overlays/aws     # deploy
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: shopstream
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - db-init-job.yaml
+  - api-gateway.yaml
+  - user-service.yaml
+  - product-service.yaml
+  - inventory-service.yaml
+  - order-service.yaml
+  - payment-service.yaml
+  - notification-service.yaml
+  - frontend.yaml
+  - hpa.yaml

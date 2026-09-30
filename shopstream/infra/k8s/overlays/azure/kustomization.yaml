@@ -1,0 +1,49 @@
+# Azure: AKS cluster, Azure Database for PostgreSQL (flexible server),
+# Azure Event Hubs (which speaks the Kafka protocol).
+# The infrastructure comes from infra/azure/provision.sh. Fill in the
+# placeholders, create secrets.env from secrets.env.example, then:
+#   kubectl apply -k infra/k8s/overlays/azure
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Must match the base, so the generated Secret lands in the same namespace
+# and kustomize can rewrite the references to its hashed name.
+namespace: shopstream
+
+resources:
+  - ../../base
+
+images:
+  - name: shopstream/api-gateway
+    newName: yourregistry.azurecr.io/shopstream-api-gateway
+    newTag: latest
+  - name: shopstream/user-service
+    newName: yourregistry.azurecr.io/shopstream-user-service
+    newTag: latest
+  - name: shopstream/product-service
+    newName: yourregistry.azurecr.io/shopstream-product-service
+    newTag: latest
+  - name: shopstream/inventory-service
+    newName: yourregistry.azurecr.io/shopstream-inventory-service
+    newTag: latest
+  - name: shopstream/order-service
+    newName: yourregistry.azurecr.io/shopstream-order-service
+    newTag: latest
+  - name: shopstream/payment-service
+    newName: yourregistry.azurecr.io/shopstream-payment-service
+    newTag: latest
+  - name: shopstream/notification-service
+    newName: yourregistry.azurecr.io/shopstream-notification-service
+    newTag: latest
+  - name: shopstream/frontend
+    newName: yourregistry.azurecr.io/shopstream-frontend
+    newTag: latest
+
+secretGenerator:
+  - name: shopstream-secrets
+    envs:
+      - secrets.env
+
+patches:
+  - path: config-patch.yaml
+  - path: frontend-service-patch.yaml

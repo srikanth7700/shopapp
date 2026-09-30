@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Shared library used by the services that talk over Kafka.
+
+  It holds the event contracts (Java records) so producer and consumer agree on
+  the message shape, plus a small auto-configuration that gives every consumer
+  retries and a dead-letter topic.
+
+  Trade-off to know about: sharing a jar couples services at build time. Bigger
+  teams often publish schemas instead (Avro/Protobuf + Schema Registry) so each
+  service can generate its own classes. For one repo, a shared jar is simpler.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.shopstream</groupId>
+        <artifactId>shopstream-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>shopstream-common</artifactId>
+    <name>ShopStream :: Common</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+    </dependencies>
+</project>

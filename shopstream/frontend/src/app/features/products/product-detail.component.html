@@ -1,0 +1,44 @@
+<a routerLink="/" class="back-link">&larr; Back to catalog</a>
+
+@if (error()) {
+  <div class="alert alert--error">{{ error() }}</div>
+}
+
+@if (product(); as p) {
+  <div class="detail">
+    <app-product-image [name]="p.name" [category]="p.category" [imageUrl]="p.imageUrl" />
+    <div class="detail__info">
+      <span class="muted small">{{ p.category }} &middot; SKU {{ p.sku }}</span>
+      <h1>{{ p.name }}</h1>
+      <p class="price">{{ p.price | currency: 'USD' }}</p>
+      <p>{{ p.description }}</p>
+
+      @if (stock(); as s) {
+        @if (s.availableQuantity === 0) {
+          <p class="stock stock--out">Out of stock</p>
+        } @else if (s.availableQuantity <= 5) {
+          <p class="stock stock--low">Only {{ s.availableQuantity }} left</p>
+        } @else {
+          <p class="stock stock--ok">In stock ({{ s.availableQuantity }} available)</p>
+        }
+      }
+
+      <div class="qty">
+        <button type="button" class="btn btn--ghost btn--sm" (click)="changeQuantity(-1)" aria-label="Less">-</button>
+        <span>{{ quantity() }}</span>
+        <button type="button" class="btn btn--ghost btn--sm" (click)="changeQuantity(1)" aria-label="More">+</button>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn btn--ghost" (click)="addToCart(false)">Add to cart</button>
+        <button type="button" class="btn btn--primary" (click)="addToCart(true)">Buy now</button>
+      </div>
+      <p class="muted small">
+        The stock shown here is not checked again until checkout. Adding more than is available is allowed on
+        purpose, so you can watch inventory-service reject the order.
+      </p>
+    </div>
+  </div>
+} @else if (!error()) {
+  <p class="muted">Loading...</p>
+}

@@ -1,0 +1,98 @@
+<h1>Admin</h1>
+
+@if (message(); as m) {
+  <div class="alert" [class.alert--success]="m.type === 'success'" [class.alert--error]="m.type === 'error'">
+    {{ m.text }}
+  </div>
+}
+
+<div class="two-col">
+  <section class="card">
+    <h2>Add a product</h2>
+    <form [formGroup]="form" (ngSubmit)="createProduct()" novalidate class="form-grid">
+      <label class="field">
+        <span>SKU</span>
+        <input class="input" formControlName="sku" placeholder="SS-BOOK-003" />
+        @if (form.controls.sku.touched && form.controls.sku.invalid) {
+          <small class="field__error">Upper-case letters, digits and dashes.</small>
+        }
+      </label>
+      <label class="field">
+        <span>Name</span>
+        <input class="input" formControlName="name" />
+        @if (form.controls.name.touched && form.controls.name.invalid) {
+          <small class="field__error">Name is required.</small>
+        }
+      </label>
+      <label class="field">
+        <span>Category</span>
+        <select class="input" formControlName="category">
+          @for (c of categories; track c) {
+            <option [value]="c">{{ c }}</option>
+          }
+        </select>
+      </label>
+      <label class="field">
+        <span>Price (USD)</span>
+        <input class="input" type="number" step="0.01" min="0.01" formControlName="price" />
+      </label>
+      <label class="field">
+        <span>Initial stock</span>
+        <input class="input" type="number" min="0" formControlName="initialStock" />
+      </label>
+      <label class="field field--wide">
+        <span>Description</span>
+        <textarea class="input" rows="3" formControlName="description"></textarea>
+      </label>
+      <button type="submit" class="btn btn--primary" [disabled]="saving()">
+        {{ saving() ? 'Saving...' : 'Create product' }}
+      </button>
+    </form>
+  </section>
+
+  <section class="card">
+    <div class="page-header">
+      <h2>Inventory</h2>
+      <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Refresh</button>
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th class="right">Available</th>
+            <th class="right">Reserved</th>
+            <th>Restock</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.stock.productId) {
+            <tr>
+              <td>
+                {{ row.product?.name ?? row.stock.sku }}
+                @if (row.product) {
+                  <div class="muted small">{{ row.product.price | currency: 'USD' }}</div>
+                }
+              </td>
+              <td class="right" [class.low]="row.stock.availableQuantity <= 5">{{ row.stock.availableQuantity }}</td>
+              <td class="right">{{ row.stock.reservedQuantity }}</td>
+              <td>
+                <div class="restock">
+                  <input
+                    class="input input--sm"
+                    type="number"
+                    min="1"
+                    [value]="restockAmounts[row.stock.productId] || ''"
+                    (input)="setRestockAmount(row.stock.productId, $any($event.target).value)"
+                    aria-label="Units to add"
+                  />
+                  <button type="button" class="btn btn--ghost btn--sm" (click)="restock(row.stock.productId)">Add</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

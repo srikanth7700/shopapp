@@ -1,0 +1,93 @@
+### ShopStream API walkthrough
+# Run these one by one with the IntelliJ IDEA HTTP Client (open this file and
+# click the green arrows). Everything goes through the API gateway on :8080.
+# Each service also has Swagger UI, e.g. http://localhost:8082/swagger-ui.html
+
+@gateway = http://localhost:8080
+
+### 1. Log in as the demo admin (the token is saved for the next requests)
+POST {{gateway}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@shopstream.dev",
+  "password": "Admin@12345"
+}
+
+> {% client.global.set("token", response.body.token); %}
+
+### 2. Who am I? (the gateway turns the JWT into an X-User-Id header)
+GET {{gateway}}/api/users/me
+Authorization: Bearer {{token}}
+
+### 3. Browse the catalog (public, no token needed)
+GET {{gateway}}/api/products?search=lamp&page=0&size=10
+
+### 4. Categories
+GET {{gateway}}/api/products/categories
+
+### 5. Stock for product 4 (public)
+GET {{gateway}}/api/inventory/4
+
+### 6. Place an order: starts the saga, returns 201 with status PENDING
+POST {{gateway}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "items": [
+    { "productId": 1, "quantity": 1 },
+    { "productId": 5, "quantity": 2 }
+  ]
+}
+
+> {% client.global.set("orderId", response.body.id); %}
+
+### 7. Follow the order (run it a few times: PENDING -> INVENTORY_RESERVED -> CONFIRMED)
+GET {{gateway}}/api/orders/{{orderId}}
+Authorization: Bearer {{token}}
+
+### 8. Order the $5,499 laptop: payment is declined, order becomes CANCELLED
+POST {{gateway}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "items": [ { "productId": 3, "quantity": 1 } ] }
+
+### 9. The payment record for an order
+GET {{gateway}}/api/payments/order/{{orderId}}
+Authorization: Bearer {{token}}
+
+### 10. Notifications created by notification-service from Kafka events
+GET {{gateway}}/api/notifications
+Authorization: Bearer {{token}}
+
+### 11. Admin: create a product (inventory-service creates its stock via ProductCreatedEvent)
+POST {{gateway}}/api/products
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "sku": "SS-BOOK-003",
+  "name": "Angular Signals Explained",
+  "description": "Reactive state in modern Angular.",
+  "category": "Books",
+  "price": 29.99,
+  "initialStock": 40
+}
+
+### 12. Admin: restock a product
+POST {{gateway}}/api/inventory/4/restock
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "quantity": 10 }
+
+### 13. Validation error example: 400 with field errors (RFC 7807 ProblemDetail)
+POST {{gateway}}/api/auth/register
+Content-Type: application/json
+
+{ "email": "not-an-email", "password": "short", "fullName": "" }
+
+### 14. No token: the gateway answers 401 before the request reaches order-service
+GET {{gateway}}/api/orders

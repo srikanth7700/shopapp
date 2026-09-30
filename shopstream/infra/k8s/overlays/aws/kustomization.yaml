@@ -1,0 +1,50 @@
+# AWS: EKS cluster, RDS PostgreSQL, Amazon MSK (Kafka).
+# The infrastructure comes from infra/terraform/aws. Fill in the placeholders
+# with `terraform output` values, create secrets.env from secrets.env.example, then:
+#   kubectl apply -k infra/k8s/overlays/aws
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Must match the base, so the generated Secret lands in the same namespace
+# and kustomize can rewrite the references to its hashed name.
+namespace: shopstream
+
+resources:
+  - ../../base
+
+# CI replaces the tags with the git SHA it built (kustomize edit set image ...).
+images:
+  - name: shopstream/api-gateway
+    newName: ghcr.io/your-github-user/shopstream-api-gateway
+    newTag: latest
+  - name: shopstream/user-service
+    newName: ghcr.io/your-github-user/shopstream-user-service
+    newTag: latest
+  - name: shopstream/product-service
+    newName: ghcr.io/your-github-user/shopstream-product-service
+    newTag: latest
+  - name: shopstream/inventory-service
+    newName: ghcr.io/your-github-user/shopstream-inventory-service
+    newTag: latest
+  - name: shopstream/order-service
+    newName: ghcr.io/your-github-user/shopstream-order-service
+    newTag: latest
+  - name: shopstream/payment-service
+    newName: ghcr.io/your-github-user/shopstream-payment-service
+    newTag: latest
+  - name: shopstream/notification-service
+    newName: ghcr.io/your-github-user/shopstream-notification-service
+    newTag: latest
+  - name: shopstream/frontend
+    newName: ghcr.io/your-github-user/shopstream-frontend
+    newTag: latest
+
+# Builds the Secret from a local file that is NOT committed to git.
+secretGenerator:
+  - name: shopstream-secrets
+    envs:
+      - secrets.env
+
+patches:
+  - path: config-patch.yaml
+  - path: frontend-service-patch.yaml

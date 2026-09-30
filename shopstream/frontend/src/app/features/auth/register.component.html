@@ -1,0 +1,35 @@
+<div class="auth card">
+  <h1>Create an account</h1>
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <label class="field">
+      <span>Full name</span>
+      <input class="input" type="text" formControlName="fullName" autocomplete="name" />
+      @if (form.controls.fullName.touched && form.controls.fullName.invalid) {
+        <small class="field__error">Name is required.</small>
+      }
+    </label>
+    <label class="field">
+      <span>Email</span>
+      <input class="input" type="email" formControlName="email" autocomplete="email" />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <small class="field__error">Enter a valid email.</small>
+      }
+    </label>
+    <label class="field">
+      <span>Password</span>
+      <input class="input" type="password" formControlName="password" autocomplete="new-password" />
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <small class="field__error">At least 8 characters.</small>
+      }
+    </label>
+
+    @if (error()) {
+      <div class="alert alert--error">{{ error() }}</div>
+    }
+
+    <button type="submit" class="btn btn--primary btn--block" [disabled]="submitting()">
+      {{ submitting() ? 'Creating account...' : 'Sign up' }}
+    </button>
+  </form>
+  <p class="muted small">Already have an account? <a routerLink="/login">Log in</a>.</p>
+</div>

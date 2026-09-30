@@ -1,0 +1,73 @@
+<a routerLink="/orders" class="back-link">&larr; All orders</a>
+
+@if (error()) {
+  <div class="alert alert--error">{{ error() }}</div>
+}
+
+@if (order(); as o) {
+  <div class="page-header">
+    <h1>Order #{{ o.id }}</h1>
+    <app-status-badge [status]="o.status" />
+  </div>
+
+  @if (o.status === 'CANCELLED') {
+    <div class="alert alert--error"><strong>Cancelled:</strong> {{ o.statusReason }}</div>
+  } @else if (o.status === 'CONFIRMED') {
+    <div class="alert alert--success">Your order is confirmed. A notification is on its way.</div>
+  } @else {
+    <div class="alert alert--info">Processing... this page updates automatically.</div>
+  }
+
+  <ol class="steps">
+    @for (step of steps(); track step.label) {
+      <li [class]="'step step--' + step.state">
+        <span class="step__dot"></span>
+        <span class="step__label">{{ step.label }}</span>
+        <span class="step__service">{{ step.service }}</span>
+      </li>
+    }
+  </ol>
+
+  <div class="two-col">
+    <section class="card">
+      <h2>Items</h2>
+      <table class="table">
+        <tbody>
+          @for (item of o.items; track item.productId) {
+            <tr>
+              <td>{{ item.productName }}</td>
+              <td class="muted">{{ item.quantity }} x {{ item.unitPrice | currency: 'USD' }}</td>
+              <td class="right">{{ item.lineTotal | currency: 'USD' }}</td>
+            </tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr>
+            <th colspan="2">Total</th>
+            <th class="right">{{ o.totalAmount | currency: 'USD' }}</th>
+          </tr>
+        </tfoot>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Event history</h2>
+      <ul class="timeline">
+        @for (change of o.history; track $index) {
+          <li>
+            <app-status-badge [status]="change.status" />
+            <div>
+              <div>{{ change.note }}</div>
+              <small class="muted">{{ change.changedAt | date: 'mediumTime' }}</small>
+            </div>
+          </li>
+        }
+      </ul>
+      @if (polling()) {
+        <p class="muted small">Waiting for the next event...</p>
+      }
+    </section>
+  </div>
+} @else if (!error()) {
+  <p class="muted">Loading order...</p>
+}

@@ -1,0 +1,5 @@
+# Copy to terraform.tfvars (git ignores it) or pass values as TF_VAR_* environment variables.
+region             = "us-east-1"
+name               = "shopstream"
+node_instance_type = "t3.large"
+# db_password: export TF_VAR_db_password='...' instead of writing it here.

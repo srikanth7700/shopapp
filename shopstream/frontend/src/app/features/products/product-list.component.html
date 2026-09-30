@@ -1,0 +1,78 @@
+<section class="hero">
+  <div>
+    <h1>Shop the catalog</h1>
+    <p class="muted">
+      Every order runs a Kafka saga across inventory, payment and notification services.
+      Try the <strong>Pro Creator Laptop</strong> (payment gets declined) or order 3
+      <strong>Mechanical Keyboards</strong> (only 2 in stock).
+    </p>
+  </div>
+  <input
+    class="input search"
+    type="search"
+    placeholder="Search products..."
+    [value]="search()"
+    (input)="onSearch($any($event.target).value)"
+    aria-label="Search products"
+  />
+</section>
+
+<div class="chips">
+  <button type="button" class="chip" [class.chip--active]="category() === null" (click)="selectCategory(null)">
+    All
+  </button>
+  @for (c of categories(); track c) {
+    <button type="button" class="chip" [class.chip--active]="category() === c" (click)="selectCategory(c)">
+      {{ c }}
+    </button>
+  }
+</div>
+
+@if (error()) {
+  <div class="alert alert--error">{{ error() }}</div>
+}
+
+@if (result(); as data) {
+  @if (data.content.length === 0) {
+    <p class="empty">No products match your search.</p>
+  } @else {
+    <div class="grid">
+      @for (product of data.content; track product.id) {
+        <article class="card product-card">
+          <a [routerLink]="['/products', product.id]">
+            <app-product-image [name]="product.name" [category]="product.category" [imageUrl]="product.imageUrl" />
+          </a>
+          <div class="product-card__body">
+            <span class="muted small">{{ product.category }}</span>
+            <a [routerLink]="['/products', product.id]" class="product-card__name">{{ product.name }}</a>
+            <div class="product-card__footer">
+              <strong>{{ product.price | currency: 'USD' }}</strong>
+              <button type="button" class="btn btn--primary btn--sm" (click)="addToCart(product)">
+                {{ lastAdded() === product.id ? 'Added' : 'Add to cart' }}
+              </button>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+
+    @if (data.totalPages > 1) {
+      <div class="pager">
+        <button type="button" class="btn btn--ghost" [disabled]="data.page === 0" (click)="page.set(data.page - 1)">
+          Previous
+        </button>
+        <span class="muted">Page {{ data.page + 1 }} of {{ data.totalPages }}</span>
+        <button
+          type="button"
+          class="btn btn--ghost"
+          [disabled]="data.page + 1 >= data.totalPages"
+          (click)="page.set(data.page + 1)"
+        >
+          Next
+        </button>
+      </div>
+    }
+  }
+} @else if (!error()) {
+  <p class="muted">Loading products...</p>
+}

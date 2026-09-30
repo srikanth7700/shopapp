@@ -1,0 +1,49 @@
+# Every value can be overridden with an environment variable, e.g. DB_HOST=postgres.
+# The defaults after ":" are for running the service from your IDE against
+# the Postgres/Kafka containers started by docker compose.
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: user-service
+  datasource:
+    # DB_PARAMS lets the cloud setups add e.g. ?sslmode=require without changing code.
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:users_db}${DB_PARAMS:}
+    username: ${DB_USERNAME:shopstream}
+    password: ${DB_PASSWORD:shopstream}
+  jpa:
+    open-in-view: false
+    # Flyway owns the schema (see src/main/resources/db/migration). Hibernate must not change it.
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+
+app:
+  jwt:
+    # Must be the same value in api-gateway. At least 32 characters.
+    secret: ${JWT_SECRET:local-dev-secret-change-me-in-production-0123456789}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:120}
+  admin:
+    email: ${ADMIN_EMAIL:admin@shopstream.dev}
+    password: ${ADMIN_PASSWORD:Admin@12345}
+    full-name: ShopStream Admin
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

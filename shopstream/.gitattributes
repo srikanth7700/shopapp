@@ -1,0 +1,5 @@
+# Normalise line endings so scripts work on every OS.
+* text=auto
+*.sh text eol=lf
+mvnw text eol=lf
+*.cmd text eol=crlf

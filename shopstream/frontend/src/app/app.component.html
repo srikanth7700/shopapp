@@ -1,0 +1,45 @@
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a routerLink="/" class="brand">Shop<span>Stream</span></a>
+
+    <nav class="nav">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Shop</a>
+      @if (auth.isLoggedIn()) {
+        <a routerLink="/orders" routerLinkActive="active">Orders</a>
+        <a routerLink="/notifications" routerLinkActive="active">
+          Notifications
+          @if (notifications.unread() > 0) {
+            <span class="pill">{{ notifications.unread() }}</span>
+          }
+        </a>
+      }
+      @if (auth.isAdmin()) {
+        <a routerLink="/admin" routerLinkActive="active">Admin</a>
+      }
+    </nav>
+
+    <div class="topbar__actions">
+      <a routerLink="/cart" class="cart-link" routerLinkActive="active">
+        Cart
+        @if (cart.count() > 0) {
+          <span class="pill">{{ cart.count() }}</span>
+        }
+      </a>
+      @if (auth.user(); as user) {
+        <span class="muted user-name">{{ user.fullName }}</span>
+        <button type="button" class="btn btn--ghost" (click)="auth.logout()">Log out</button>
+      } @else {
+        <a routerLink="/login" class="btn btn--ghost">Log in</a>
+        <a routerLink="/register" class="btn btn--primary">Sign up</a>
+      }
+    </div>
+  </div>
+</header>
+
+<main class="container page">
+  <router-outlet />
+</main>
+
+<footer class="footer container muted">
+  ShopStream is a learning project: Spring Boot microservices, Kafka, PostgreSQL and Angular.
+</footer>

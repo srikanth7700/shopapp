@@ -1,0 +1,68 @@
+# Every value can be overridden with an environment variable (e.g. DB_HOST=postgres).
+# The defaults after ":" are for running this service from your IDE against the
+# Postgres and Kafka containers started with: docker compose up -d postgres kafka
+server:
+  port: ${SERVER_PORT:8084}
+
+spring:
+  application:
+    name: order-service
+  datasource:
+    # DB_PARAMS lets the cloud setups add e.g. ?sslmode=require without changing code.
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:orders_db}${DB_PARAMS:}
+    username: ${DB_USERNAME:shopstream}
+    password: ${DB_PASSWORD:shopstream}
+  jpa:
+    open-in-view: false
+    # Flyway owns the schema (src/main/resources/db/migration). Hibernate must not change it.
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # Events are sent as JSON. The serializer adds a "__TypeId__" header with the
+      # Java class name so the consumer knows which class to turn the JSON back into.
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      # acks=all + idempotence: the broker confirms the write and never stores duplicates from retries.
+      acks: all
+      properties:
+        enable.idempotence: true
+    consumer:
+      # Each service has its own consumer group, so each service gets its own copy of every event.
+      group-id: ${spring.application.name}
+      auto-offset-reset: earliest
+      # ErrorHandlingDeserializer wraps the real deserializer so a malformed message
+      # goes to the error handler (and the dead letter topic) instead of crashing the consumer in a loop.
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: com.shopstream.common.events
+
+app:
+  services:
+    product-url: ${PRODUCT_SERVICE_URL:http://localhost:8082}
+  outbox:
+    poll-interval-ms: 500
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

@@ -1,0 +1,58 @@
+# Continuous Delivery to AWS EKS. Started by hand from the Actions tab
+# ("Run workflow"), with the git SHA of an image that CI already built.
+#
+# One-time setup (see docs/CLOUD-DEPLOYMENT.md):
+#   - repository secret  AWS_DEPLOY_ROLE_ARN : IAM role that trusts GitHub's OIDC provider
+#   - repository vars    AWS_REGION, EKS_CLUSTER_NAME
+#   - an environment called "production" (add required reviewers for a manual approval gate)
+name: Deploy to AWS EKS
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy (a full git SHA built by CI)"
+        required: true
+
+permissions:
+  id-token: write # lets the job get short-lived AWS credentials through OIDC; no stored AWS keys
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME || 'shopstream' }}
+      OVERLAY: infra/k8s/overlays/aws
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Connect kubectl to the cluster
+        run: aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME" --region "$AWS_REGION"
+
+      - name: Pin image versions
+        working-directory: ${{ env.OVERLAY }}
+        env:
+          OWNER: ${{ github.repository_owner }}
+          TAG: ${{ inputs.image_tag }}
+        run: |
+          owner=$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')
+          for service in api-gateway user-service product-service inventory-service order-service payment-service notification-service frontend; do
+            kustomize edit set image "shopstream/${service}=ghcr.io/${owner}/shopstream-${service}:${TAG}"
+          done
+
+      - name: Apply manifests
+        run: kubectl apply -k "$OVERLAY"
+
+      - name: Wait for rollout
+        run: |
+          for deployment in api-gateway user-service product-service inventory-service order-service payment-service notification-service frontend; do
+            kubectl -n shopstream rollout status "deployment/${deployment}" --timeout=300s
+          done

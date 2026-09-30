@@ -1,0 +1,49 @@
+<h1>Your cart</h1>
+
+@if (cart.items().length === 0) {
+  <div class="empty">
+    <p>Your cart is empty.</p>
+    <a routerLink="/" class="btn btn--primary">Browse products</a>
+  </div>
+} @else {
+  <div class="cart">
+    <div class="card">
+      @for (item of cart.items(); track item.productId) {
+        <div class="cart-row">
+          <app-product-image class="thumb" [name]="item.name" [category]="item.category" />
+          <div class="cart-row__name">
+            <a [routerLink]="['/products', item.productId]">{{ item.name }}</a>
+            <span class="muted small">{{ item.price | currency: 'USD' }} each</span>
+          </div>
+          <div class="qty">
+            <button type="button" class="btn btn--ghost btn--sm" (click)="cart.setQuantity(item.productId, item.quantity - 1)" aria-label="Less">-</button>
+            <span>{{ item.quantity }}</span>
+            <button type="button" class="btn btn--ghost btn--sm" (click)="cart.setQuantity(item.productId, item.quantity + 1)" aria-label="More">+</button>
+          </div>
+          <strong class="cart-row__total">{{ item.price * item.quantity | currency: 'USD' }}</strong>
+          <button type="button" class="btn btn--link" (click)="cart.remove(item.productId)">Remove</button>
+        </div>
+      }
+    </div>
+
+    <aside class="card summary">
+      <div class="summary__line">
+        <span>Items</span>
+        <span>{{ cart.count() }}</span>
+      </div>
+      <div class="summary__line summary__total">
+        <span>Total</span>
+        <span>{{ cart.total() | currency: 'USD' }}</span>
+      </div>
+      <p class="muted small">Final prices are calculated by order-service at checkout.</p>
+
+      @if (error()) {
+        <div class="alert alert--error">{{ error() }}</div>
+      }
+
+      <button type="button" class="btn btn--primary btn--block" [disabled]="placing()" (click)="checkout()">
+        {{ placing() ? 'Placing order...' : auth.isLoggedIn() ? 'Place order' : 'Log in to check out' }}
+      </button>
+    </aside>
+  </div>
+}

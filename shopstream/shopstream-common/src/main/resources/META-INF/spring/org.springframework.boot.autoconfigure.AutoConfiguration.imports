@@ -1,0 +1,3 @@
+com.shopstream.common.kafka.KafkaErrorHandlingAutoConfiguration
+com.shopstream.common.kafka.KafkaTopicsAutoConfiguration
+com.shopstream.common.kafka.EventPublisherAutoConfiguration

@@ -1,0 +1,11 @@
+# Keep the Docker build context small and the layer cache stable.
+.git
+.idea
+.vscode
+**/target
+**/*.iml
+frontend
+docs
+infra
+scripts
+*.md

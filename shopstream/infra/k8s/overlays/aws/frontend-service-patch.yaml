@@ -1,0 +1,10 @@
+# Expose the frontend through an AWS Network Load Balancer.
+# `kubectl -n shopstream get service frontend` shows its public DNS name.
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+spec:
+  type: LoadBalancer

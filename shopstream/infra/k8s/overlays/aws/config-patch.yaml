@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shopstream-config
+data:
+  # terraform output rds_endpoint  (host only, without :5432)
+  DB_HOST: "REPLACE_WITH_RDS_ENDPOINT"
+  DB_PARAMS: "?sslmode=require"
+  # terraform output msk_bootstrap_brokers
+  KAFKA_BOOTSTRAP_SERVERS: "REPLACE_WITH_MSK_BOOTSTRAP_BROKERS"
+  # MSK has 3 brokers, so every topic is stored 3 times.
+  APP_KAFKA_REPLICATIONFACTOR: "3"

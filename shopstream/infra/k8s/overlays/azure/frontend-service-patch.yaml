@@ -1,0 +1,7 @@
+# Expose the frontend through an Azure Load Balancer with a public IP.
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  type: LoadBalancer

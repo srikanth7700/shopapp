@@ -1,0 +1,34 @@
+<div class="page-header">
+  <h1>Notifications</h1>
+  <div class="actions">
+    <button type="button" class="btn btn--ghost" (click)="load()">Refresh</button>
+    <button type="button" class="btn btn--ghost" (click)="markAllRead()">Mark all read</button>
+  </div>
+</div>
+<p class="muted small">
+  Created by notification-service from Kafka events. It also "emails" each one to its log:
+  <code>docker compose logs -f notification-service</code>
+</p>
+
+@if (error()) {
+  <div class="alert alert--error">{{ error() }}</div>
+}
+
+@if (notifications(); as list) {
+  @if (list.length === 0) {
+    <p class="empty">No notifications yet. Place an order to get some.</p>
+  } @else {
+    <ul class="notifications">
+      @for (n of list; track n.id) {
+        <li class="card notification" [class.notification--unread]="!n.read" (click)="markRead(n)">
+          <div class="notification__head">
+            <strong>{{ n.title }}</strong>
+            <small class="muted">{{ n.createdAt | date: 'medium' }}</small>
+          </div>
+          <p>{{ n.message }}</p>
+          <a [routerLink]="['/orders', n.orderId]" class="small">View order #{{ n.orderId }}</a>
+        </li>
+      }
+    </ul>
+  }
+}
